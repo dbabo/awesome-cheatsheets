@@ -1,6 +1,6 @@
 ##############################################################################
 # BASH CHEATSHEET (中文速查表)  -  by skywind (created on 2018/02/14)
-# Version: 26, Last Modified: 2018/02/25 20:56
+# Version: 29, Last Modified: 2018/02/26 14:07
 # https://github.com/skywind3000/awesome-cheatsheets
 ##############################################################################
 
@@ -52,8 +52,9 @@ env                 # 显示环境变量
 echo $SHELL         # 显示你在使用什么 SHELL
 
 bash                # 使用 bash，用 exit 返回
-whereis bash        # 查找 bash 在哪里
-which bash          # 查找哪个程序对应命令 bash
+which bash          # 搜索 $PATH，查找哪个程序对应命令 bash
+whereis bash        # 搜索可执行，头文件和帮助信息的位置，使用系统内建数据库
+whatis bash         # 查看某个命令的解释，一句话告诉你这是干什么的
 
 clear               # 清初屏幕内容
 reset               # 重置终端（当你不小心 cat 了一个二进制，终端状态乱掉时使用）
@@ -100,6 +101,7 @@ diff {f1} {f2}      # 比较两个文件的内容
 wc {fn}             # 统计文件有多少行，多少个单词
 chmod 644 {fn}      # 修改文件权限为 644，可以接 -R 对目录循环改权限
 chown user1 {fn}    # 修改文件所有人为 user1, chown user1:group1 fn 可以修改组
+file {fn}           # 检测文件的类型和编码
 grep {pat} {fn}     # 在文件中查找出现过 pat 的内容
 grep -r {pat} .     # 在当前目录下递归查找所有出现过 pat 的文件内容
 
@@ -159,6 +161,8 @@ trap cmd sig1 sig2        # 在脚本中设置信号处理命令
 trap "" sig1 sig2         # 在脚本中屏蔽某信号
 trap - sig1 sig2          # 恢复默认信号处理行为
 
+nohup {command}           # 长期运行某程序，在你退出登陆都保持它运行
+nohup {command} &         # 在后台长期运行某程序
 disown {PID|JID}          # 将进程从后台任务列表（jobs）移除
 
 wait                      # 等待所有后台进程任务结束
@@ -177,7 +181,8 @@ scp -P {port} ...         # 指定端口远程拷贝文件
 
 uname -a                  # 查看内核版本等信息
 man {help}                # 查看帮助
-info {help}               # 查看帮助，info pages，比 man 更强的帮助系统
+man -k {keyword}          # 查看哪些帮助文档里包含了该关键字
+info {help}               # 查看 info pages，比 man 更强的帮助系统
 uptime                    # 查看系统启动时间
 date                      # 显示日期
 cal                       # 显示日历
@@ -278,16 +283,19 @@ num=$((1 + (2 + 3) * 2))  # 复杂计算
 
 # 定义一个新函数
 function myfunc() {
-	# $1 代表第一个参数，$N 代表第 N 个参数
-	# $# 代表参数个数
-	# $0 代表被调用者自身的名字
-	# $@ 代表所有参数，类型是个数组，想传递所有参数给其他命令用 cmd "$@" 
-	# $* 空格链接起来的所有参数，类型是字符串
-	{shell commands ...}
+    # $1 代表第一个参数，$N 代表第 N 个参数
+    # $# 代表参数个数
+    # $0 代表被调用者自身的名字
+    # $@ 代表所有参数，类型是个数组，想传递所有参数给其他命令用 cmd "$@" 
+    # $* 空格链接起来的所有参数，类型是字符串
+    {shell commands ...}
 }
 
 myfunc                    # 调用函数 myfunc 
 myfunc arg1 arg2 arg3     # 带参数的函数调用
+myfunc "$@"               # 将所有参数传递给函数
+shift                     # 参数左移
+
 unset -f myfunc           # 删除函数
 declare -f                # 列出函数定义
 
@@ -353,17 +361,17 @@ test cond && cmd1         # 判断条件为真时执行 cmd1
 # 判断 /etc/passwd 文件是否存在
 # 经典的 if 语句就是判断后面的命令返回值为0的话，认为条件为真，否则为假
 if test -e /etc/passwd; then
-	echo "alright it exists ... "
+    echo "alright it exists ... "
 else
-	echo "it doesn't exist ... "
+    echo "it doesn't exist ... "
 fi
 
 # 和上面完全等价，[ 是个和 test 一样的可执行程序，但最后一个参数必须为 ]
 # 这个名字为 "[" 的可执行程序一般就在 /bin 或 /usr/bin 下面，比 test 优雅些
 if [ -e /etc/passwd ]; then   
-	echo "alright it exists ... "
+    echo "alright it exists ... "
 else
-	echo "it doesn't exist ... "
+    echo "it doesn't exist ... "
 fi
 
 # 和上面两个完全等价，其实到 bash 时代 [ 已经是内部命令了，用 enable 可以看到
@@ -371,16 +379,16 @@ fi
 
 # 判断变量的值
 if [ "$varname" = "foo" ]; then
-	echo "this is foo"
+    echo "this is foo"
 elif [ "$varname" = "bar" ]; then
-	echo "this is bar"
+    echo "this is bar"
 else
-	echo "neither"
+    echo "neither"
 fi
 
 # 复杂条件判断，注意，小括号是字面量，实际输入时前面要加反斜杆
 if [ \( $x -gt 10 \) -a \( $x -lt 20 \) ]; then
-	echo "yes, between 10 and 20"
+    echo "yes, between 10 and 20"
 fi
 
 # 可以用 && 命令连接符来做和上面完全等价的事情
@@ -399,32 +407,32 @@ https://www.ibm.com/developerworks/library/l-bash-test/index.html
 
 # while 循环
 while condition; do
-	statements
+    statements
 done
 
 i=1
 while [ $i -le 10 ]; do
-	echo $i; 
-	i=$(expr $i + 1)
+    echo $i; 
+    i=$(expr $i + 1)
 done
 
 # for 循环：上面的 while 语句等价
 for i in {1..10}; do
-	echo $i
+    echo $i
 done
 
 for name [in list]; do
-	statements
+    statements
 done
 
 # for 列举某目录下面的所有文件
 for f in /home/*; do 
-	echo $f
+    echo $f
 done
 
 # bash 独有的 (( .. )) 语句，更接近 C 语言，但是不兼容 posix sh
 for (( initialisation ; ending condition ; update )); do
-	statements
+    statements
 done
 
 # 和上面的写法等价
@@ -432,17 +440,17 @@ for ((i = 0; i < 10; i++)); do echo $i; done
 
 # case 判断
 case expression in 
-	pattern1 )
-		statements ;;
-	pattern2 )
-		statements ;;
-	* )
-		otherwise ;;
+    pattern1 )
+        statements ;;
+    pattern2 )
+        statements ;;
+    * )
+        otherwise ;;
 esac
 
 # until 语句
 until condition; do
-	statements
+    statements
 done
 
 # select 语句
@@ -587,7 +595,7 @@ find ~ -mmin 60 -type f            # 查找 $HOME 目录中，60 分钟内修改
 curl wttr.in/~beijing              # 查看北京的天气预报
 echo ${SSH_CLIENT%% *}             # 取得你是从什么 IP 链接到当前主机上的
 echo $[RANDOM%X+1]                 # 取得 1 到 X 之间的随机数
-bind -x '"\C-;":ls -l'             # 设置 CTRL+; 为执行 ls -l 命令
+bind -x '"\C-l":ls -l'             # 设置 CTRL+l 为执行 ls -l 命令
 find / -type f -size +5M           # 查找大于 5M 的文件
 chmod --reference f1 f2            # 将 f2 的权限设置成 f1 一模一样的
 
@@ -645,43 +653,43 @@ lsof -P -i -n | cut -f 1 -d " "| uniq | tail -n +2
 
 # 自动解压：判断文件后缀名并调用相应解压命令
 function q-extract() {
-	if [ -f $1 ] ; then
-		case $1 in
-		*.tar.bz2)   tar -xvjf $1    ;;
-		*.tar.gz)    tar -xvzf $1    ;;
-		*.tar.xz)    tar -xvJf $1    ;;
-		*.bz2)       bunzip2 $1     ;;
-		*.rar)       rar x $1       ;;
-		*.gz)        gunzip $1      ;;
-		*.tar)       tar -xvf $1     ;;
-		*.tbz2)      tar -xvjf $1    ;;
-		*.tgz)       tar -xvzf $1    ;;
-		*.zip)       unzip $1       ;;
-		*.Z)         uncompress $1  ;;
-		*.7z)        7z x $1        ;;
-		*)           echo "don't know how to extract '$1'..." ;;
-		esac
-	else
-		echo "'$1' is not a valid file!"
-	fi
+    if [ -f $1 ] ; then
+        case $1 in
+        *.tar.bz2)   tar -xvjf $1    ;;
+        *.tar.gz)    tar -xvzf $1    ;;
+        *.tar.xz)    tar -xvJf $1    ;;
+        *.bz2)       bunzip2 $1     ;;
+        *.rar)       rar x $1       ;;
+        *.gz)        gunzip $1      ;;
+        *.tar)       tar -xvf $1     ;;
+        *.tbz2)      tar -xvjf $1    ;;
+        *.tgz)       tar -xvzf $1    ;;
+        *.zip)       unzip $1       ;;
+        *.Z)         uncompress $1  ;;
+        *.7z)        7z x $1        ;;
+        *)           echo "don't know how to extract '$1'..." ;;
+        esac
+    else
+        echo "'$1' is not a valid file!"
+    fi
 }
 
 # 自动压缩：判断后缀名并调用相应压缩程序
 function q-compress() {
-	if [ -n "$1" ] ; then
-		FILE=$1
-		case $FILE in
-		*.tar) shift && tar -cf $FILE $* ;;
-		*.tar.bz2) shift && tar -cjf $FILE $* ;;
-		*.tar.xz) shift && tar -cJf $FILE $* ;;
-		*.tar.gz) shift && tar -czf $FILE $* ;;
-		*.tgz) shift && tar -czf $FILE $* ;;
-		*.zip) shift && zip $FILE $* ;;
-		*.rar) shift && rar $FILE $* ;;
-		esac
-	else
-		echo "usage: q-compress <foo.tar.gz> ./foo ./bar"
-	fi
+    if [ -n "$1" ] ; then
+        FILE=$1
+        case $FILE in
+        *.tar) shift && tar -cf $FILE $* ;;
+        *.tar.bz2) shift && tar -cjf $FILE $* ;;
+        *.tar.xz) shift && tar -cJf $FILE $* ;;
+        *.tar.gz) shift && tar -czf $FILE $* ;;
+        *.tgz) shift && tar -czf $FILE $* ;;
+        *.zip) shift && zip $FILE $* ;;
+        *.rar) shift && rar $FILE $* ;;
+        esac
+    else
+        echo "usage: q-compress <foo.tar.gz> ./foo ./bar"
+    fi
 }
 
 
@@ -689,15 +697,16 @@ function q-compress() {
 # References
 ##############################################################################
 
+https://github.com/Idnan/bash-guide
 http://www.linuxstall.com/linux-command-line-tips-that-every-linux-user-should-know/
-https://github.com/LeCoupa/awesome-cheatsheets/blob/master/languages/bash.sh
 https://ss64.com/bash/syntax-keyboard.html
 http://wiki.bash-hackers.org/commands/classictest
 https://www.ibm.com/developerworks/library/l-bash-test/index.html
 https://www.cyberciti.biz/faq/bash-loop-over-file/
 https://linuxconfig.org/bash-scripting-tutorial
+https://github.com/LeCoupa/awesome-cheatsheets/blob/master/languages/bash.sh
 https://devhints.io/bash
 https://github.com/jlevy/the-art-of-command-line
 
-
+# vim: set ts=4 sw=4 tw=0 et :
 
